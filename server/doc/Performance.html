@@ -1,0 +1,16 @@
+<head><title>Plexus: Performance Issues</title>
+</head>
+<body>
+<h1>Performance Issues</h1>
+
+<i>This file is still under development</i> <p>
+
+<ul>
+<li> Forks to handle process so it doesn't block in parent (and failures
+are limited to that process and don't affect the server).
+<li> Avoids unnecessary exec()'s which are slow (does most work internally).
+</ul>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

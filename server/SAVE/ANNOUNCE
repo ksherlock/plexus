@@ -1,0 +1,39 @@
+Plexus Version 3.0l (beta)
+
+Available from: ftp://ftp.earth.com/plexus/3.0-beta/prerelease/
+
+New features are:
+* supports multiple servers on the same port using different
+  IP Addresses via the [-h host] option (see howto/multiple-servers.txt)
+* CGI interface
+* support for the <INC> directive (in files with a .xhtml extension)
+* better forms support (including a test mode and an emailer)
+* easier configuration (well, you can at least now automatically
+  change all the #!/usr/bin/perl lines to whatever you put in
+  Makefile.config).  The ``make configure'' step is currently optional.
+* Better error reporting
+* Multi-port daemon (can handle requests on multiple ports)
+* Loadable access modules
+* Easier to configure local.conf file
+* flock/fcntl locking switch in local.conf
+* Better docs
+* Single process
+* Standalone or filter setext.pl
+* Can bind to a specific IP Address so you can run multiple
+  servers on a single machine (see howto/multiple-servers.txt)
+* Debug mode (-D outfile),
+* New command line args:
+  plexus [-c config] [-d topdir] [-i | -I sockfd] [-l log] [-p port] [-D diag]
+* plexus will now run from inetd (running from inetd is *highly*
+  discouraged, it's far too slow) or from the command line with
+  the -i option [these are mostly to make testing & debugging easier]
+* The -I option allows you to setup the internet domain socket
+  yourself and pass it on to plexus (and this is how restart works).
+
+The major change from 2.X to 3.X that gateway writers need to be aware of
+is that $path is 8-bit data, so you must be careful when using information
+extracted from it.  You can use &safeopen() (documented in
+support.html#safeopen) to open files.  There are also some new functions
+for dealing with query data (see gateways.html and search.pl).
+
+--sanders@earth.com

@@ -1,0 +1,74 @@
+<head>
+<title>Plexus: File Layout</title>
+</head>
+<body>
+<h1>Plexus File Layout</h1>
+
+<pre>
+$plexus_top                        Top of server tree
+    server/                        Server code directory
+        Overview                   Overview of what each file does
+        plexus                     Main program
+        dir.pl                     File and Directory support routines
+        get.pl                     Handles GET requests
+        log-simple.pl              Simple file based logging functions
+        log-syslog.pl              Syslog style logging functions
+        mime.pl                    MIME and HTTP/1.0 support routines
+        post.pl                    Handles POST requests
+        site.pl                    Platform specific support routines
+
+    <b>Configuration Files</b>
+        plexus.conf                Server configuration file
+        local.conf                 Local site configuration file
+
+    <b>Utilities</b>
+        decode.pl                  Image-Decoding library
+        map.conf                   Image-Decoding configuration file
+        search.pl                  Directory search routines
+        grep.pl                    Flexible grep code (used by search.pl)
+        setext.pl                  Setext -&gt; HTML converter
+
+    <b>Access Control Support Routines</b>
+        access/
+            access-sample.pl       IP-based Request Filter
+            access-filter.pl       Pass/Fail Access Control
+            access-filter.conf     Pass/Fail Access Control configuration file
+
+    <b>Authentication Support Routines</b>
+        auth/
+            auth-ripem.pl          RIPEM based authentication scheme
+            ripem-prv              servers private key
+            ripem-pub              authorized users public keys
+
+    <b>Sample Gateways</b>
+        apps/
+            date.pl                Date and Time gateway
+            calendar.pl            Calendar interface
+            fortune.pl             Fortune interface
+            finger.pl              Finger gateway (requires customization)
+
+    <b>Contributed Utilities</b>
+        contrib/
+            archiplex.pl           ArchiePlex archie gateway
+            siks.pl                Simple Index Keyword Searching
+            neuro.pl               Neuroprose gateway for cs.indiana.edu
+            npindex.pl             Neuroprose indexer
+            sunman.pl              Sun man page front end for cs.indiana.edu
+            sunmanindex.pl         Indexer for the sun man pages
+
+    <b>Other Sub-directories</b>
+         doc/                      Documentation
+         walk/                     SpaceWalk Demo
+         bookmark/                 Bookmark Navigation Support
+
+    <b>Misc Gateways</b>
+    finger/finger-cover.html       Finger index page
+    bsdi-man/                      BSDI Man Page Gateway files
+        bsdi-man.pl                Hypertext Man Page gateway
+        index.html                 Index Page
+        bsdi-man.xbm               Man page icon
+</pre>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

@@ -1,0 +1,66 @@
+Plexus 3.x
+----------
+ o  install and test new decode.pl 
+ o  tmp/xy_decode stuff (XPM support) & latest decode.pl from Oscar
+
+ o  FreeWAIS hooks in search.pl (generic search function, maybe lq-text also)
+ o  exec module
+
+ o  Deal with my +inbox/plexus
+ o  Inline <LINK REL="annotation"> on POST
+ o  CVS GET/PUT backend hooks
+
+ o  index_dir only on trailing /   I would like to make this an option
+    but I don't see any trivial way to do this.  I guess I could do
+    less preprocessing of the request but I'm not sure what impact this
+    would have.  This will probably have to wait until 4.0.
+
+Public Annotations:
+ o  PUT/POST/DELETE
+ o  Have a whole bunch of different notification schemes, the actual
+    scheme will be configurable, of course.  Hopefully, you will even
+    be able to "sign up" using your browser.
+ o  Have a global index (e.g., find annotations on server/* newer than 10 days)
+ o  POST'ing to a document without authorization will automatically
+    do-the-right-thing (which will be configurable).  For example, we might:
+    * add a <LINK REL="annotation" HREF="..."> to the document
+    * mail a `diff -c' to the author
+    * ???
+
+Authentication:
+
+ o  User/Password ("telnet"-style)
+ o  IP based
+ o  Kerberos IV
+
+Misc:
+ o  Module to process Gopher-style directories and/or wuarchive directories
+ o  Accept Gopher protocol (he he)
+ o  Accept FTP protocol??? (hey, why not)
+ o  search.pl should be a front-end with multiple backends (wais, grep, ...)
+ o  Add poly's and objectmasks (using xpm format) to decode library
+ o  Preprocessors for: some kind of simple menu language, maybe an m4 pass.
+ o  More HTTP/1.0 support:
+    + grok Accept: and Accept-encoding: fields
+    + do format translations (mostly done)
+ o  Think about how to report errors in the middle of generated data.
+
+That should be enough for a while.  You should also check out the XXX's in
+the source for pointers of things that need work.
+
+Plexus 4.x
+----------
+
+ o  Object-Oriented (e.g.):
+
+    sub dispatch {
+        (*object, *client_data) = &resolver($request);
+        eval "&$object{$object{METHOD}}(*object, *client_data);
+        # object contains methods and request data
+        # client_data is defined by the object (args in config file probably)
+    }
+
+    ? requests will be mapped to action TEXTSEARCH
+
+ o  The log file format needs to change to support HTTP/1.0 Headers.
+    I want to log stuff like Referer:, From: and User-Agent: 

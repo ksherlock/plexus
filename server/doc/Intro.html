@@ -1,0 +1,80 @@
+<head>
+<title>Introduction: Plexus HTTP</title>
+<link rev="Subdocument" href="plexus.html">
+<link rel="Precedes" href="Overview.html">
+</head>
+<body>
+<h1>Introduction to Plexus</h1>
+
+<i>Plexus</i> is a <a href="Availability.html">public domain</a> HTTP
+server written in <a href="http://www.cis.ohio-state.edu:85/info/perl.info,top">perl</a> (you
+should use perl 4.0 patchlevel 36 or later).  It is designed to be
+easy to install and use, have good performance, and be easily extensible
+(serving as a development toolkit). <p>
+
+The core server is about 1400 lines of perl and there are approximately 2200
+lines of support routines and 70KBytes of documentation. <p>
+
+<h2>Protocols</h2>
+
+<i>Plexus</i> currently supports both the HTTP/0.9 and <a href="http://www.w3.org:80/hypertext/WWW/Protocols/HTTP/HTTP2.html">
+HTTP/1.0</a> protocols.  There are plans for a <i>Gopher</i> protocol
+module that will let you serve data from gopher directorys.  The
+<i>Plexus</i> dispatch routine can manage incoming connections on
+multiple socket ports and manage multiple protocol streams. <p>
+
+<h2>Logging</h2>
+
+There are two logging functions to chose from (and it's easy to write your
+own custom routines).  The basic logging routines just log all transactions
+to a log file and emails serious errors to the <i>webmaster</i> (this is
+configurable).  The alternate set of logging routines use the
+<b>syslog()</b> functions to allow remote logging and reporting of serious
+errors. <p>
+
+<h2>File Locking</h2>
+
+You can configure <b>POSIX</b> style locking using <code>fcntl()</code>
+or <b>BSD</b> style locking using <code>flock()</code>. <p>
+
+<h2>Authentication</h2>
+
+A skeletal <b>RIPEM</b> (Riordan Internet Privacy Enhanced Mail) based
+authentication package is provided (<b>RIPEM</b> itself is not included).
+Any <b>PEM</b> compliant package would easily drop in to replace
+<b>RIPEM</b>.  This requires customization to get working but the basic
+functionality is provided.  The most important thing is that the hooks
+for providing whatever authentication scheme you need (Basic, PEM, Kerberos)
+is in place. <p>
+
+<h2>Access Control</h2>
+
+Hooks for access control (aka authorization) are provided.
+The access control module that is provided allows you to pass or
+fail the request based on access method, user authentication data
+(username, anonymous, or authenticated), host, network or domain name.
+<p>
+
+The Access Control system and the Authentication system are
+designed to operate together.  The Authentication system
+provides the username of the authenticated user to the Access
+Control system. <p>
+
+<h2>Access Methods</h2>
+
+You can completely configure the actions taken on each request.
+The HTTP GET and HEAD methods are provided and are fairly complete.
+There is a skeletal POST method provided (the only provided functionality
+is it will mail the request to the server administrator). <p>
+
+<h2>Configuration Files</h2>
+
+There are two levels of configuration files provided.
+<code>plexus.conf</code> is the server configuration file that contains
+things like the user and group id's to run as.
+<code>local.conf</code> is more of a user level configuration
+file.  It is used to customize the system and add new gateways. <p>
+
+<hr>
+<address><a href="http://www.bsdi.com/hyplan/sanders.html">Tony Sanders</a></address>
+</body>

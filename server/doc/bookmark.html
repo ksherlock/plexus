@@ -1,0 +1,29 @@
+<head>
+<title>Plexus: Bookmark</title>
+<link rev="Subdocument" href="Overview.html">
+<link rev="Precedes" href="setext.html">
+</head>
+<body>
+<h1>Bookmark</h1>
+
+The bookmark feature lets you embed a book icon like:
+<img src="/server/bookmark/bookmark.xbm"> and lets the user click on
+the forward, backward, or up sections using the image decoding feature.
+The menu for what gets returned is embedded in the URL.  For example
+the following URL might be for Page 2 of a book:
+
+<pre>
+&lt;A HREF="/bookmark/demo_bookmark/index.html:Index_Page/page1.html:Page_1/page3.html:Page_3"&gt;
+</pre>
+
+<i>Up</i> would take you back to the index, <i>back</i> to page 1, and
+<i>forward</i> to page 3.  The second element of the path (in this example
+<code>demo_bookmark</code>) defines where on the server the document is
+found; underscores are translated to slashes.  Each element after that is:
+the document name, followed by a colon, followed by the text for the menu
+that is printed if the browser doesn't support image selection.  In the
+menu text underscores are translated to spaces. <p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

@@ -1,0 +1,37 @@
+<head>
+<title>Plexus: Installation</title>
+</head>
+<body>
+<h1>Installation</h1>
+
+<ol>
+<li> Edit Makefile.config <p>
+
+<code>Makefile.config</code> contains information about where to install
+the files.  All installation procedures allow an additional
+<var>DESTDIR</var> to be defined, which is inserted before all install
+paths so <kbd>make install DESTDIR=/testing</kbd>
+will prepend <code>/testing</code> to all install paths. <p>
+
+You might also want to check <code>Makefile</code>, <code>Makefile.run</code>,
+and the <code>Makefile.run</code> files in all the subdirectories you will
+be installing.  This part shouldn't give you too much trouble but it
+never hurts to check first (besides it will give you a good idea of
+what the Makefiles actually do, which is very little). <p>
+
+<li> <kbd>make install [DESTDIR=/destdir]</kbd> <p>
+
+This will install all of the server, examples, and documentation.
+By default, this installs the server code in
+<code>/usr/local/www/server/*</code>, the <b>bookmark</b> demo in
+<code>/usr/local/www/server/bookmark/*</code>, the <b>walk</b> demo in
+<code>/usr/local/www/server/walk/*</code>, the documentation in
+<code>/usr/local/www/server/doc/*</code>, a few miscellaneous tools in
+<code>/usr/local/www/bin/*</code>, and the <code>bsdi-man</code> utilities
+in <code>/usr/local/www/bsdi-man/*</code>.
+<p>
+</ol>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

@@ -1,0 +1,98 @@
+<head>
+<title>Plexus: Adding Gateways</title>
+<link rev="Subdocument" href="Extension.html">
+<link rel="Precedes" href="support.html">
+</head>
+<body>
+<h1>Adding Gateways</h1>
+
+<b>Principle #1: Simple things should be simple</b> <p>
+
+Gateways are very simple to add to plexus.  In the simplest case, you need
+only add a <i>map</i> line in <code>local.conf</code> and make sure your
+gateway calls <code><a href="support.html#MIME_header">&amp;main'MIME_header('ok',
+'content/type');</a></code> (where <code>content/type</code> is one of the MIME
+content types) before doing any output.  <a href="support.html#mime">MIME_header</a> does all the work dealing with
+HTTP/1.0 headers. <p>
+
+If your gateway encounters an error it should call <code><a href="support.html#error">&amp;error($status, $msg);</a></code> which will
+deal with reporting the error back to the user and exiting.
+<code>&amp;error</code> does not return.  Fatal errors can also
+be reported with the standard perl <code>die</code> command and
+those will be handled by <code>&amp;report_error</code> which will
+send email to <i>webmaster</i> by default so you should only
+use in cases where something is broken enough that someone should
+look at it. <p>
+
+The <a href="/server/apps/fortune.pl">fortune</a> gateway is a good example
+to start with because it's very simple.  Note that it is careful
+to extract only the information it needs from a user query.  This
+is to prevent the users from being able to execute arbitrary commands
+on your server.  Any data that comes from the user must be carefully
+screened in this way to prevent security holes. <p>
+
+With this in mind I added a few new routines to make creating secure
+gateways easier.  <code><a href="support.html#safeopen">&amp;safeopen($FH,
+$file);</a></code> will safely open a file for reading and should be
+used in all cases where client data is involved.  <code><a href="support.html#splitquery">@fields = &amp;main'splitquery($query);</a></code>
+will split a user query into fields and convert any %## escapes it contains.
+Most gateways can simply use something like <code>$query = join(" ", &amp;main'splitquery($query));</code>.
+Also, there is <code><a href="support.html#printable">$pstring = &amp;main'printable($string);</a></code>
+which will convert a string of binary data into something that is printable
+using the %## notation for non-printable characters. <p>
+
+<b>Principle #2: Complex things should be possible</b> <p>
+
+There are many <a href="support.html">support routines</a> provided in the
+base code for making your life easier.  The <a href="/server/search.pl">search</a> module makes use of several.  First,
+it uses <code><a href="support.html#clear_timeout">&amp;main'clear_timeout;</a></code> to
+clear the default timeout since it is about to do a search operation that
+may take a little longer than normal operations and we are pretty sure
+that it isn't going to hang unless there are major system problems.  The
+main reason for the timeout is when you are doing I/O on the socket to
+the client which might hang and we don't want a bunch of processes hanging
+around not doing anything, so always make sure the timer is running when
+you do I/O with the client.  You can use <code><a href="support.html#set_timeout">&amp;main'set_timeout</a></code> to restart
+the timer if you have stopped it. <p>
+
+<b>Principle #3: A configurable command is a usable command</b> <p>
+
+It's best to make things configurable.  You can use the <i>set</i> command
+in <code><a href="/server/local.conf">local.conf</a></code> which sets
+the value in the associtive array <var>%plexus</var> so you can extract
+values from it.  But it's even better to simply pass the data directly
+into your command as arguments to <i>map</i> (this allows the data to be
+configurable on a per <i>map</i> basis).  For some examples see
+the sample <i>finger</i> and <i>search</i> gateway configurations
+in <i><a href="/server/local.conf">local.conf</a></i>. <p>
+
+<b>Principle #4: Thou shall not scrunge others variables</b> <p>
+
+Perl uses dynamic scoping (the value of a variable is inherited down
+the call tree).  Unfortunatly, Plexus makes use of this in a couple of
+different cases.  The good news is that most servers need only concern
+themselves with a small number of variables because they are actually run
+in a seperate process from the main server (so each invocation gets a
+fresh environment).  Mainly, watch out for <var>$version</var>,
+<var>%in_headers</var>, and <var>%out_headers</var> which are all used
+in the HTTP/1.0 handling code in <code>&amp;MIME_header</code>.
+<var>%in_headers</var> is the list of HTTP/1.0 headers (if any) we got
+with the request and <var>%out_headers</var> is used by
+<code>&amp;MIME_header</code> to create the outgoing reply, it can be appended
+to using <code><a href="support.html#add_header">&amp;add_header(*out_headers, "Sample:
+header")</a></code> (which must be called <b>before</b> </code>&amp;MIME_header</code>)
+for gateways that need to augment the standard reply headers. <p>
+
+Another side effect of dynamic scoping is that subroutines you call can
+modify <b>your</b> variables.  I've tried to carefully <code>local()</code>
+all variables in the support routines.  An easy way to avoid conflict is
+to run in your own <code>package</code> as do all the sample gateways.  <p>
+
+Users writing new methods must be more careful as they run in the main
+server thread and cannot use package to good effect.  You will probably
+be ok if you just prepend the method name to all variable names, and be
+careful.  <p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

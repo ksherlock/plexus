@@ -1,0 +1,100 @@
+<head>
+<title>Plexus: Configuration</title>
+</head>
+<body>
+<h1>Configuration</h1>
+
+<h2>plexus</h2>
+
+<code>plexus [-c config] [-d topdir] [-i | -I sockfd] [-l log] [-p port]
+[-P pidfile] [-D diag]</code> <p>
+
+<pre>
+  -p port         Specify port to open (/etc/service name or number)
+                  Without -i or -I plexus will start in daemon mode,
+                  [-p port] is only useful in this mode.
+
+  -d topdir       Override default directory (/usr/local/www)
+  -c config       Override default config file (server/plexus.conf)
+  -l log          Override default log file (log)
+  -P pidfile      Override default pid output file (plexus.pid)
+  -D diag         Specify diagnosic output file (enable debug)
+
+  -i              Use stdin/stdout (e.g., running under inetd)
+  -I sockfd       Use specified socket (mostly for server restarts)
+</pre>
+
+<code>Plexus</code> contains the main loop that accepts incoming HTTP
+connections and forks a process to handle the transaction.  The main server
+can continue to accept other connections while the child processes the
+request in the background.  The child vectors though the associative array
+<code>%method</code>, defined in <code>plexus.conf</code>, to one of the
+method routines (e.g., GET is handled by <code>&amp;do_get</code>).  <p>
+
+If started as a normal user, the default port is <var>$http_userport</var>
+and is defined in <code>plexus.conf</code>.  It can be changed on the
+command line using the <code>-p</code> option.  When started as root, it
+will open the standard HTTP port which defaults to
+<var>$http_defaultport</var> from <code>plexus.conf</code>.  However, the
+port assignment can be overridden either on the command line using the
+<code>-p</code> option or in <code>/etc/services</code> by adding a line
+for the <b>http</b> protocol e.g.: <code>http   80/tcp</code>.  Command
+line options always override internal defaults.  <p>
+
+<var>Topdir</var> defaults to <code>/usr/local/www</code>, the
+config file defaults to <code>server/plexus.conf</code>, and the
+log file defaults to <code>log</code>.
+<p>
+
+<i>Plexus</i> also assumes that perl lives in <code>/usr/bin/perl</code>.
+If this is not the case then it's best if you create a symlink for it.
+If you can't do that then you will need to edit a bunch of files.  To get
+the list run <kbd>find . -type f -print | xargs grep -l /usr/bin/perl</kbd>
+from the top level <i>Plexus</i> source directory. <p>
+
+<h2>site.pl</h2>
+
+One of the first things you need to do is configure the site.pl file.
+This file contains all the platform-dependant code.  It helps if you have
+installed your standard system header files using perl's h2ph.  The only
+config option in <code>local.conf</code> that affects this file is
+<code>locking</code>, which is set in <code>local.conf</code>.  It should
+be set to either <code>flock</code> or <code>fcntl</code>; the default is
+<code>flock</code>.  <p>
+
+<h2>plexus.conf</h2>
+
+Next, you should make sure all the settings in <code>plexus.conf</code>
+agree with your local system configuration.
+There shouldn't be much need to change
+this file unless you are adding new features.  The notable exceptions
+are <var>$http_chroot</var>, which controls whether or not to
+<code>chroot</code> to the top of the tree; <var>$http_user</var> and
+<var>$http_group</var> which define the user and group to switch
+to if started as root; and <var>$hostname</var>, which should
+contain your fully qualified domain name (it defaults to /bin/hostname).  <p>
+
+<h2>local.conf</h2>
+
+Contains settings for various system parameters including: which files to
+load, directory mapping, format translations, and
+file-extension-to-content-type mappings.  This file is <b>not</b> a perl
+script.  It is designed for ease of use and flexibility.  <p>
+
+<h2>Verification</h2>
+
+After you install the files, test the server from the command line
+using the following command: <kbd>/usr/local/www/server/plexus -i -l
+/dev/tty -D /dev/tty</kbd>.  This will log all information to your tty.
+You can type your request directly from the keyboard (e.g., <kbd>GET /
+HTTP/1.0</kbd>).  <p>
+
+Finally, run plexus in server mode using the following command:
+<kbd>/usr/local/www/server/plexus -D /dev/tty &amp;</kbd>.  Once plexus
+is running, test it using your browser.  If you run plexus as root, it
+opens port 80; if you are running it as a normal user, it opens port 8001.
+<p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

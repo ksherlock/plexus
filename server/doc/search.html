@@ -1,0 +1,26 @@
+<head>
+<title>Plexus: Directory Search</title>
+<link rev="Subdocument" href="Overview.html">
+<link rev="Precedes" href="search.html">
+<link rel="Precedes" href="setext.html">
+</head>
+<body>
+<h1>Directory Search</h1>
+
+You can use the Directory Search function in <a href="/server/search.pl"><code>search.pl</code></a> when
+ever you have a small amount of data that you would like to allow full
+regular expression searches on.  Just add a map for the base directory in
+the config file that points to <code>&do;_search</code> like the example
+in the distributed <code>local.conf</code> config file.  <p>
+
+For example:
+<pre>
+map     info            search.pl       &amp;do_search($path, $query, "Info")
+</pre>
+
+This causes any document under /info that has the &lt;ISINDEX&gt; tag to allow
+a search of all the files in it's directory and all directories under it. <p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

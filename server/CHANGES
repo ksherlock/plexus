@@ -1,0 +1,112 @@
+Changes to Plexus from Previous Versions
+========================================
+
+Plexus 3.0
+----------
+
+* supports multiple servers on the same port using different
+  IP Addresses via the [-h host] option (see howto/multiple-servers.txt)
+* supports If-Modified-Since and Content-Length
+* included cgi.pl
+* included inc.pl (for supporting <INC> directives)
+* better forms support (including a test mode and an emailer)
+* easier configuration (well, you can at least now automatically
+  change all the #!/usr/bin/perl lines to whatever you put in
+  Makefile.config).  The ``make configure'' step is currently optional.
+* lock around plexus.pid (so running plexus twice doesn't mess it up)
+* updated documentation
+* Added a basic wais.pl module (needs a little work for production use)
+* Added basic pass/fail support (access-filter.pl)
+* Added basic POST support (currently just emails the data)
+* Added generic logger routines (log-simple.pl for file based
+  logging with email for severe errors, and log-syslog.pl for
+  syslog based logging).
+* Fixed security hole in bookmark.pl
+* &report_error is now defined in site.pl.  This routine deals with
+  reporting internal_error class errors to the sysadmin.  The current
+  default implementation just sends email, it should probably
+  use syslog but I'm too lazy to do it.
+* Log file now contains hostname instead of IP address if possible.
+* Added some new security features (&safeopen) so I could remove some of the
+  filename restrictions.  $query's are handled by the user now so they are
+  more flexible but I added &printable to convert to a printable strings and
+  &splitquery which translates %##'s and splits on + (which you can embed
+  in the query using %2b).  Things are much cleaner now and as long as
+  you are careful with new agents I think more secure.
+* Server restart now works first time (you don't have
+  to wait for the next request before it restarts).
+* Extended &daemon to be able to handle more than one socket so you can
+  bind to a list of sockets and &net_filter can have different restrictions
+  based on which socket was connected.  This way you can have a local
+  domain socket that can handle things like EXEC methods.  Anything in
+  local.conf can add sockets to @sockets and it will automatically be
+  managed.  Just be careful to keep you FH's unique.
+* fixed bug where a timeout wasn't being cleared properly
+* Added error handling and reporting routines
+* Fixed some documentation bugs
+* redid the &net_filter interface, which caused most of the code in
+  get.pl to move into plexus so I could filter the request before
+  handing it to &net_filter.
+* net_filter is not defined by default so it's easy to add your own
+  just by adding ``load net-filter.pl'' in local.conf
+* moved all the contributed stuff (oraplex and archieplex) into ./contrib/
+* added gateways.html which explains some about adding your own gateways
+* more/better documentation
+* merged plexus,plexus.pl,front.pl into plexus
+* added new local.conf file with easier syntax for non-perl folks
+* flock/fcntl switch in local.conf
+* setext.pl will now run as either a converter or standalone
+  it switches automatically (like magic)
+* New command line for plexus:
+  Usage: plexus [-c config] [-d topdir] [-i] [-l log] [-p port] [-D diag]
+* Added diagnostic channel (enabled by -D option)
+* moved getuid/getgid before chroot() so you don't *have* to have local files
+* You can now run plexus from inetd (or stand-alone from the comamnd line)
+  using the -i switch.  Also, if you want to setup the environment
+  you can open the socket and chdir/chroot/whatever can call plexus with the
+  `-I fd' option, where fd is the socket filedescriptor for plexus to attach
+  to.  Mostly -I is used for restarting plexus.
+* log file now trys to resolve IPaddr to hostname
+
+Plexus 2.2.1
+------------
+
+* Minor bug fixes to 2.2 (mostly integrated archieplex better).
+
+Plexus 2.2
+----------
+
+* easier to customize install directories
+* removed the crusty account.pl, I think someone is working on patches
+  to do this right.
+* converted everything to use pacakges
+* some security holes patched with .. and invalid requests in get.pl
+  Thanks to Mitchell N Charity <mcharity@lcs.mit.edu>
+* added support for document translation (lots of changes in dir.pl)
+* added setext.pl to convert from setext (.etx) to HTML
+* added better image decoding support thanks to Chris McRae
+  <mcrae@ckm.ucsf.edu>.  You can now specify image decoding
+  in a configuration file ($MAP_CONFIG_FILE) and you can use
+  bitmasks or rectangles.  In most cases you don't have to write
+  any code!  Things like bookmark are more complicated and still
+  require code, but few things really need that.
+* &send_file went away and was replaced with: &wrap_file, &wrap_fd,
+  &raw_file, &raw_fd.   &require is certainly the only stable
+  interface at this point (though I don't see &raw_fd changing again).
+  &wrap_* will probably have to change again to make file translations
+  work "right".
+* added support for hypertext'ed man pages from pre-formatted files.
+  In this initial release they are specific to bsdi man pages
+  but should be easy to configure for your local system (most of the
+  config options are at the top of the bsdi-man.pl file).
+* added some log file summerizing scripts
+
+Plexus 2.1
+----------
+
+* Mostly bug fixes
+
+Plexus 2.0
+----------
+
+* Inital 2.X release

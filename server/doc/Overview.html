@@ -1,0 +1,88 @@
+<head>
+<title>Overview: Plexus HTTP</title>
+<link rev="Subdocument" href="plexus.html">
+<link rev="Precedes" href="Intro.html">
+<link rel="Precedes" href="Availability.html">
+</head>
+<body>
+<h1>Overview of Plexus</h1>
+
+<i>Plexus</i> has many advanced features including built-in image decoding,
+directory listing and searching functions.  See also the
+<a href="file-layout.html">File Layout</a> overview. <p>
+
+<h2>Primary Features</h2>
+
+<dl>
+
+<dt> <a href="decode.html">Image Decoding</a>
+<dd> Finds objects in images using bitmasks or rectangles
+(see <a href="/server/walk/walk.html">demo</a>).
+
+<dt> <a href="dir.html">Directory Browser</a>
+<dd> Displays alpha-sorted directory listing with
+last modification timestamp, file size, and an indicator as to whether
+the object is a file or a directory.  The user can also specify filename
+filters using the search keyword
+(see <a href="/demo/">demo</a>).
+
+<dt> <a href="search.html">Directory Search</a>
+<dd> Searches directory trees using <a href="http://www.cis.ohio-state.edu:85/info/perl.info,Regular%20Expressions">perl
+regular expressions</a>, returns a list of documents found and even extracts
+the title information from html documents.
+(see <a href="/info/">demo</a>).
+
+<dt> <a href="setext.html">Setext -&gt; HTML Converter</a>
+<dd> Converts setext documents to HTML on the fly
+(see <a href="/setext/">demo</a>).
+
+<dt> <a href="bookmark.html">Bookmark</a>
+<dd> Allows you to navigate through a document space using a book icon.
+Built on top of the image-decoding library
+(see <a href="/server/bookmark/demo.html">demo</a>).
+
+</dl>
+
+<h2>Miscellaneous Gateways</h2>
+
+These are included as examples of how simple it can be to add gateways
+to <i>Plexus</i>.  Some of these are only a few lines long.
+
+<dl>
+
+<dt> <a href="finger.html">Finger</a>
+<dd> Fingers people and displays faces
+(see <a href="/finger/gateway">demo</a>).
+
+<dt> <a href="calendar.html">Calendar</a>
+<dd> Displays calendars
+(see <a href="/calendar">demo</a>).
+
+<dt> <a href="date.html">Date and Time</a>
+<dd> Displays the date and time using 61 different timezone translations
+(see <a href="/date">demo</a>).
+
+<dt> <a href="fortune.html">Fortune</a>
+<dd> Displays a fortune from the fortune database
+(see <a href="/fortune">demo</a>).
+
+</dl>
+
+<h2>Advanced Contributed Gateways</h2>
+
+These are maintained by other people but are included with <i>Plexus</i>
+for reference.  These are good examples of how to do complex gateways.
+
+<dl>
+<dt> <a href="archieplex.html">ArchiePlex</a>
+<dd> Allows searches of an archie database
+(see <a href="http://web.nexor.co.uk/archieplex/">demo</a>).
+<dt> <a href="oraplex.html">OraPlex</a>
+<dd> Oracle -&gt; WWW Gateway.
+<dt> Parscan
+<dd> Query a file of HTML paragraphs
+</dl>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

@@ -1,0 +1,28 @@
+<head>
+<title>Plexus: Compilation</title>
+<link rev="Subdocument" href="plexus.html">
+<link rev="Precedes" href="Availability.html">
+<link rel="Precedes" href="Installation.html">
+</head>
+<body>
+<h1>Compilation</h1>
+
+The good news is you don't have to compile anything (except perl).  There
+are a couple of routines in the <code>tools</code> directory that you may
+wish to compile and use but they are not a part of <i>Plexus</i> and are
+not required for normal operation. <p>
+
+What you may need to do instead is configure the various paths for your
+system.  I assume that you have <code>perl</code> loaded in
+<code>/usr/bin/perl</code>.  If you do not, then you need to either
+create a symbolic link (e.g., <code>ln -s /usr/local/bin/perl /usr/bin/perl</code>)
+or change all the files in the distribution that contain the line
+<code>#!/usr/bin/perl</code> (namely <code>src/plexus</code>). <p>
+
+The files in the <code>src</code> directory are the core services files.
+Those are the only files you need to run a basic server, everything else
+is optional.  <p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

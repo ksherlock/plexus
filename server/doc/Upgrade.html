@@ -1,0 +1,46 @@
+<head>
+<title>Plexus: Updating Notice</title>
+</head>
+<body>
+<h1>Updating: Changes in Plexus 3.0</h1>
+
+<h2>Administrators</h2>
+
+Casual administrators should note that the configuration files have changed.
+The most notable change is the most configuration is now done in
+<code>local.conf</code>. <p>
+
+<h2>Developers</h2>
+
+Gateway writers should be aware of these changes from 2.2.1 to 3.0 in
+the interface to gateway programs (the impact should be minimal on well
+written gateways). <p>
+
+The main thing you need to worry about is that incoming path names are no
+longer filtered for special characters.  There is a new routine called
+<a href="support.html#safeopen"><code>&main;'safeopen</code></a> that can
+be used to open files with names derived from user data.  The rest shouldn't
+affect code in the gateway itself (unless you want to use the new query
+facilities to preprocess the query data). <p>
+
+<ul>
+<li> $path is now 8-bit data and gateways using it to derive
+     file paths should use <code>&main;'safeopen("package'FH", $file);</code>
+     to open files (it works just like <code>open</code> but always opens
+     <var>$file</var> for read-only).  Of course, if you open files that
+     are defined within your program then there is no danger as always.
+<li> Gateway configuration is now done in <code>local.conf</code>
+     and has a new (easier to use) syntax.
+<li> $_ changed to $path (shouldn't affect the gateway code, just
+     the local.conf information).
+<li> There are two new support routines for dealing with query data:
+     <code>$pstring = &main;'printable($string)</code> converts binary data
+     to a printable string for using in the document itself and
+     <code>@fields = &main;'splitquery($query);</code> which splits the
+     query on ``+'' and converts the %## escapes to data (which means
+     that you must be careful using $query data, as always).
+</ul>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

@@ -1,0 +1,24 @@
+# walk.map -- walk map file
+#
+# $Id: walk.map,v 2.3 1994/06/23 05:44:21 sanders Exp $
+#
+# Tony Sanders <sanders@earth.com>, June 1993
+#
+# map_handle config-file map_config_file
+# map_handle default URL
+# map_handle title auto-menu title
+# map_handle bitmask bitmask_file width height URL [auto-menu description]
+# map_handle rect x y width height URL [auto-menu description]
+
+decode-walk title Space Walk Image
+decode-walk default server/walk/default.html
+# Later versions of lynx *lie* and give 0,0 as the coords on ISMAP's (sigh).
+# This is badly broken IMHO as it disables one of the very important
+# design features of ISMAP in that non-image based browsers should get
+# a *menu* of links if they link through an ISMAP image URL without coords.
+decode-walk rect -1 -1 1 1 server/walk/default.html
+decode-walk bitmask server/walk/astronaut.mask 106 110 server/walk/astronaut.html astronaut
+decode-walk bitmask server/walk/camera.mask 106 110 server/walk/camera.html camera
+decode-walk bitmask server/walk/earth.mask 106 110 server/walk/earth.html earth
+decode-walk bitmask server/walk/pack.mask 106 110 server/walk/pack.html spacesuit pack
+decode-walk rect 0 0 106 110 server/walk/space.html outerspace

@@ -1,0 +1,496 @@
+#!/usr/bin/perl
+# plexus -- HyperText Tranfer Protocol Daemon
+#
+# $Id: plexus,v 2.24 1994/06/23 15:33:10 sanders Exp $
+#
+# This code forms the core of a multi-threaded HTTP deamon, with the
+# primary emphasis being on responsiveness; thus, things like exec()
+# and parsing are kept to a minimum when responding to requests.
+#
+# by Tony Sanders <sanders@earth.com>, August 1993
+
+# For debugging run:
+#     ./plexus -i -s `pwd` -d /usr/local/www -l /dev/tty -D /dev/tty
+# To test the server in action, leave off the -i.
+
+# -c config       override default config file [$plexus_conf]
+# -d topdir       override default directory to serve [$plexus_top]
+# -s srcdir       override default (./server) source directory [$plexus_src]
+# -h host         bind socket to specific IP Address [$plexus_host]
+# -i              Use stdin/stdout (e.g., running under inetd) [$plexus_mode]
+# -l log          override default logfile [$plexus_log]
+# -p port         specify port to open [$plexus_port]
+# -P pidfile      override default pidfile output file [$plexus_pidfile]
+# -D diag         specify diagnosic output file [$plexus_diag] (enables debug)
+# -I sockfd       use specified socket (mostly for server restarts) [$plexus_mode]
+$usage = "Usage: plexus [-c config] [-d topdir] [-s srcdir] [-h host] [-i | -I sockfd] [-l log] [-p port] [-P pidfile] [-D diag]";
+
+require 'ctime.pl';
+
+eval '&plexus';
+&log_error('fatal internal_error: server exiting: ', $@) if ($@);
+die $@ if $@;
+exit 0;
+
+# ============================ PRIVATE ROUTINES ============================
+
+sub plexus {
+    # option init:
+    $plexus_top = "/usr/local/www";
+    $plexus_src = "server";
+    $plexus_conf = "plexus.conf";
+    $plexus_log = undef;
+    $plexus_diag = undef;
+    $plexus_host = undef;
+    $plexus_port = undef;
+    $plexus_mode = 0;		# undef = inetd, 0 = daemon, >0 = restart fd
+
+    $running_as_root = ($< == 0);
+    @sockets = ();
+
+    &parse_args(@ARGV);
+
+    open(STDERR, ">>$plexus_diag") if defined $plexus_diag;
+    select((select(STDERR), $| = 1)[0]);
+    &debug("plexus pid=$$ -d $plexus_top -D $plexus_diag:fd=", fileno(STDERR));
+
+    # don't chdir in restart mode
+    (defined($plexus_mode) && ($plexus_mode > 0)) ||
+        chdir($plexus_top) || die "chdir: $plexus_top: $!";
+
+    # make plexus_conf relative to $plexus_src if it's not an absolute path
+    require ($plexus_conf =~ m:^/: ? $plexus_conf : "$plexus_src/$plexus_conf")
+	unless defined($plexus_configured);
+    require 'site.pl';
+
+    if ($running_as_root) {
+	# get gid and uid and set gid early
+	$gid = (getgrnam("$http_group"))[2] || die "getgrnam: $http_group: $!";
+	$uid = (getpwnam("$http_user"))[2] || die "getpwnam: $http_user: $!";
+	&debug("uid: $uid, gid: $gid");
+	$( = $) = $gid;
+	# XXX: plug possible security hole, not very flexible or portable
+	require "sys/syscall.ph"; local(@groups) = ($gid);
+	syscall(&SYS_setgroups, @groups+0, pack("i*", @groups));
+    }
+
+    $ENV{'TZ'} = 'GMT';		# be network friendly
+    # $SIG{'HUP'} = 'IGNORE';	# XXX: think about this some more
+    $SIG{'INT'} = 'cleanup';
+    $SIG{'QUIT'} = $debug ? 'restart_daemon' : 'cleanup';
+    $SIG{'USR1'} = 'restart_daemon';
+    $SIG{'CHLD'} = 'reaper'; 
+    $SIG{'PIPE'} = 'IGNORE'; 
+    &clear_timeout;
+
+    if (! defined $plexus_mode) {
+	# INETD (stdin/stdout)
+	&debug("plexus running on stdin/stdout");
+	($sockname = getsockname(STDIN)) &&
+	    ($plexus_port = (unpack($sockaddr, $sockname))[1]);
+	$plexus_port = "filter" unless defined $plexus_port;
+	select(STDOUT); $| = 1;
+    } elsif ($plexus_mode > 0) {
+        # RESTART
+        open(S, "+>&$plexus_mode") || die "dup: couldn't reattach $plexus_mode: $!";
+        &setfd(1, fileno(S));			# close new S on exec
+        &setfd(0, $plexus_mode);		# keep orig
+        push(@sockets, "S");
+        &debug("socket $plexus_mode reattached to fd: ", fileno(S));
+        $plexus_port = (unpack($sockaddr, getsockname(S)))[1];
+    } else {
+	# DAEMON
+	# must setup port before switching from root because of ports <1024
+	&debug("plexus running in daemon mode");
+	$plexus_port = $plexus_port || ($running_as_root?$http_service:$http_userport);
+	$plexus_port = &getserv($plexus_port, $http_proto) || $http_defaultport;
+	$http_inaddr = (gethostbyname($plexus_host))[4]
+	    if defined $plexus_host;
+	&bind_port(S, $http_inaddr, $plexus_port, $http_proto);
+	push(@sockets, "S");
+    }
+
+    if ($running_as_root) {
+	$http_chroot &&
+	    (chroot($plexus_top) || die "chroot: $plexus_top: $!", chdir("/"));
+	$< = $> = $uid;					# now set user id
+    }
+
+    #
+    # Everything before this point is configured in plexus.conf
+    # This is where we read the users config file, after we aren't
+    # root and have setup a "secure" environment (just in case).
+    #
+    &process_config(CFG, $http_localcfg);
+
+    &logger'message("----Server #$$ on port $main'plexus_port started at " . &main'ctime(time));
+
+    if (! defined $plexus_mode) {
+	# INETD (stdin/stdout)
+	# if peer is not remote, fake address 0.0.0.0 for log
+	$peeraddr = (getpeername(STDIN) ||
+	    pack($sockaddr, &AF_INET, $plexus_port, "\0\0\0\0"));
+	&client_connect(0, $peeraddr);			# 0 means mystery guest
+    } else {
+	&debug("starting plexus daemon mode");
+	# create lock only if not restarting
+	&lock_pid($plexus_pidfile || $plexus{'pidfile'}) if $plexus_mode == 0;
+	&daemon(@sockets);
+        die "whoa, something went wrong: $!";
+    }
+}
+
+sub daemon {
+    local(@fds) = @_;
+    local($rin, $rout) = &fhbits(@fds);
+    local($fd);
+    $errcnt = $restart_daemon = 0;
+CONNECTION:
+    until ($restart_daemon) {
+	if (($nfound = select($rout=$rin, undef, undef, undef)) < 0) {
+	    next CONNECTION if $! == &EINTR;
+	    if ($errcnt++ < 10) {
+		# log the first 10 errors, in case something is really broken
+		&logger'message("--- WARNING: select: $!\n");
+		&logger'error("select error", "select: $!\n");
+	    }
+	    sleep($errcnt > 100 ? 5 : 1);	# don't pound the system
+	}
+        foreach (@fds) {
+            $fd = fileno($_);
+            if (vec($rout, $fd, 1)) {
+                &debug("connection on $_, fd: $fd");
+                $peeraddr = accept(NS, $_);
+		if (fork == 0) {	# fork immediately to prevent delays
+		    &debug("inside fork: pid=$$");
+		    open(STDIN, '<& NS');
+		    open(STDOUT, '>& NS');
+		    select(STDOUT); $| = 1;
+		    close(NS); close($_);
+		    # restore proper signal handling for child
+		    $SIG{'INT'} = 'DEFAULT';
+		    $SIG{'QUIT'} = 'DEFAULT';
+		    $SIG{'USR1'} = 'DEFAULT';
+		    $SIG{'CHLD'} = 'DEFAULT';		# so $? works
+		    $SIG{'PIPE'} = 'cleanup';		# client closes socket
+		    &client_connect($fd, $peeraddr);
+		    exit 0;
+		}
+		close(NS);			# continue in parent thread
+            }
+        }
+    }
+    # dropped out of loop, so we restart ourselves
+    &logger'message("----Server #$$ restarting at " . &ctime(time));
+    &logger'close();
+
+    # detect restarts, can't be inetd mode since this is &daemon
+    if ($plexus_mode > 0) {
+	exec "$http_server", @ARGV;			# have -I already
+    } else {
+	exec "$http_server", "-I", fileno(S), @ARGV;	# add -I
+    }
+    die "$http_server: $!";  
+}
+
+# deal with the client connection and returning errors properly
+sub client_connect {
+    local($fromfd, $peeraddr) = @_;
+    local($version);
+    # We add in some standard output headers here
+    &main'add_header(*main'out_headers, "Date: " . &main'fmt_date(time));
+    &main'add_header(*main'out_headers, "Server: " . $main'server_version);
+    eval '&process_request(&get_request, $fromfd, $peeraddr)';
+    if ($@) {
+	(($exception, $__error_msg) = ('internal_error', $@))
+	    unless ($exception = &thrown);
+	&report_error($exception, "client_connect: " . $__error_msg);
+	$@ = undef;				# never mind
+    }
+}
+
+sub parse_args {
+    local($_);
+    while ($_ = shift) {
+        /^-c$/ && do { $plexus_conf = shift || die "-c requires an argument\n"; next; };
+        /^-d$/ && do { $plexus_top = shift || die "-d requires an argument\n"; next; };
+        /^-s$/ && do { $plexus_src = shift || die "-s requires an argument\n"; next; };
+        /^-h$/ && do { $plexus_host = shift || die "-h requires an argument\n"; next; };
+        /^-l$/ && do { $plexus_log = shift || die "-l requires an argument\n"; next; };
+        /^-p$/ && do { $plexus_port = shift || die "-p requires an argument\n"; next; };
+        /^-P$/ && do { $plexus_pidfile = shift || die "-P requires an argument\n"; next; };
+        /^-D$/ && do { $debug++; $plexus_diag = shift || die "-D requires an argument\n"; next; };
+        /^-i$/ && do { die "-i conflicts with -I\n" if defined $plexus_mode && $plexus_mode > 0; $plexus_mode = undef; next; };
+        /^-I$/ && do { die "-I conflicts with -i\n" if ! defined $plexus_mode; $plexus_mode = shift || die "-I requires an argument\n"; next; };
+	die "Unrecognized argument: $_\n$usage\n";
+    }
+}
+
+# You need only the p_ for a new command and
+# it will automatically be picked up by &process_config().
+# The best way to add new p_ commands is to add a require
+# in site.pl to load your local extensions (in other words,
+# you shouldn't add them directly to this code).
+sub p_set { split(/\s+/, $_, 2); $plexus{$_[0]} = (eval qq/"$_[1]"/); &debug("set $_[0] = ", $plexus{$_[0]}); }
+sub p_hide { $hidden{(eval qq/"$_"/)} = 1; }
+sub p_load { split(/\s+/, $_); foreach (@_) { require (eval qq/"$_"/); } }
+sub p_translate { split(/\s+/, $_, 3); $trans{$_[1]} = "$_[2]:$_[0]"; }
+sub p_map { split(/\s+/, $_, 3); $map{(eval qq/"$_[0]"/)} = "require \"$_[1]\"; $_[2]"; }
+sub p_content { split(/\s+/, $_); local($c, $_) = shift(@_); foreach (@_) { $content{$_} = $c; } }
+sub p_encoding { split(/\s+/, $_); local($c, $_) = shift(@_); foreach (@_) { $encoding{$_} = $c; } }
+sub p_loadpath { split(/\s+/, $_); local($_); foreach (@_) { unshift(@INC, (eval qq/"$_"/)); } }
+sub p_eval { (eval qq/"$_"/); }
+
+sub process_config {
+    local($FH, $cfg) = @_;
+    local($cmd, $_);
+
+    &open($FH, $cfg) || die "$cfg: $!";
+    while (<$FH>) {
+        chop; s/#.*//; s/^\s*//; s/\s*$//; next if /^$/;	# cleanup
+        ($cmd, $_) = split(/\s+/, $_, 2);
+        if (eval "defined &p_$cmd") {
+	    eval "&p_$cmd";
+	    die $@ if $@;
+	} else {
+	    warn "process_config ignored: $cmd $_\n";
+	}
+    }
+    close($FH);
+}
+
+sub reaper {
+    while(waitpid(-1,&WNOHANG) > 0) { ; }
+    $SIG{'CHLD'} = "reaper";
+}
+
+sub fhbits {
+    local($bits, $_);
+    for (@_) { vec($bits, fileno($_), 1) = 1; }
+    $bits;
+}
+
+sub restart_daemon { $restart_daemon++; }
+
+sub cleanup { exit 0; }
+
+sub thrown { $@ =~ /^(EXCEPTION: )+(.+)/ && $2; }
+
+sub log_request {
+    local($peeraddr, $_) = @_;
+    local($af, $port, $inetaddr) = unpack($main'sockaddr, $peeraddr);
+    local($ctime) = &main'ctime(time); chop $ctime;
+    local($msg) = sprintf("%-15s %s %s\n", &main'hostname($inetaddr), $ctime, $_);
+    &logger'message($msg);
+    &logger'close();
+}
+
+sub log_error {
+    local($status, $msg) = @_;
+    &debug("Error: $status $msg");
+    if (defined &logger'error) {
+	&logger'error($status, $msg) unless $main'debug;
+    } else {
+        print STDERR "Error: ", $status, " ", $msg;
+    }
+}
+
+# report error to client and server
+sub report_error {
+    local($status, $msg) = @_;
+    $status = 'internal_error' unless defined($main'code{$status});
+    &log_error($status, "non-fatal: " . $msg) if ($status eq 'internal_error');
+    select(STDOUT); $| = 1;
+    &main'debug('in report_error, about to call MIME_header');
+    &main'MIME_header($status, 'text/html');
+    print <<EOM;
+<HEAD><TITLE>Server Error: $code{$status}</TITLE></HEAD>
+<BODY><H1>Server Error: $code{$status}</H1>
+$msg <P>
+If you feel this is a server problem and wish to report it, please
+include the error code, the requested URL, which and what version
+browser you are using, and any other facts that might be relevant to: <P>
+$'plexus{'support'}
+</BODY>
+EOM
+}
+
+# Thanks to Oscar Nierstrasz <oscar@cui.unige.ch> for this code
+sub lock_pid {
+    local($pidfile) = @_;
+    local($lockfile) = "$pidfile.lock";    # file to lock
+    local($umask) = umask(002);
+    open(PIDLOCK, "> $lockfile") || die "open: $lockfile: $!";
+    &debug("opened $lockfile");
+    &seize(PIDLOCK, &LOCK_EX | &LOCK_NB) || die "locking: $pidfile.lock: $!";
+    &debug("lockfile($$) fd:", fileno(PIDLOCK));
+
+    open(PIDFILE, "> $pidfile") || die "open: $pidfile: $!";
+    print PIDFILE $$, "\n";
+    close(PIDFILE);
+    umask($umask);
+}
+
+sub getserv { ($_[0] =~ m/^\d+$/) ? $_[0] : (getservbyname($_[0], $_[1]))[2]; }
+
+# ============================ GLOBAL ROUTINES ============================
+
+sub printable {
+    local($_) = @_;
+    s/([\000-\040+\177-\377])/sprintf('%%%02x',ord($1))/eg;
+    $_;
+}
+sub splitquery {
+    local($query) = @_;
+    grep((s/%([\da-f]{1,2})/pack(C,hex($1))/eig, 1), split(/\+/, $query));
+}
+
+sub error {
+    local($exception, $msg) = @_;
+    $main'__error_msg = $msg;			# export message to global
+    die "EXCEPTION: $exception\n";
+}
+
+# return FQDN if possible
+sub hostname {
+    local($ip) = @_;
+    local($fqdn) = (gethostbyaddr($ip,&AF_INET))[0] ||
+        join(".", unpack("C4", $ip));
+    $fqdn =~ y/[A-Z]/[a-z]/;
+    $fqdn;
+}
+sub timeout_error {
+    &error('timed_out', "Server timed out after $plexus{'timeout'} seconds.");
+}
+sub set_timeout {
+    $main'SIG{'ALRM'} = "main'timeout_error";
+    alarm($_[0] || $plexus{'timeout'});
+}
+sub clear_timeout {
+    $main'SIG{'ALRM'} = '';
+    alarm(0);
+}
+sub debug { print STDERR @_, "\n" if $debug; }
+sub caller {
+    local($p,$f,$l,$s) = caller(1);
+    &debug("backtrace $s:$f:$l");
+}
+sub safeopen {
+    local($fh, $_) = @_;
+    s#^\s#./$&#;				# protect leading spaces
+    $plexus{'relative'} ne 'enabled'
+        && (m#/\.+/# || m#/\.+$#)
+        && &error('bad_request',
+                "No backward directory references permitted: $_");
+    open($fh, "< $_\0");
+}
+sub open {
+    local($fh, $file, $pre, $path, $_) = @_;
+    foreach $pre (@INC) {
+	$path = "$pre/$file";
+	return &safeopen($fh, $path) if -f $path;
+    }
+    $! = &ENOENT; undef;
+}
+# Converts a fileglob to a perl regexp
+sub globpat {
+    local($_) = @_;
+    s/\\([\*\?\[\]])/\377$1/g;			# escapes
+    s/([^A-Za-z0-9\-\*\?\[\]\377])/\\$1/g;	# protect
+    $_ = join('', '^', $_, '$');		# ^ required below
+    s/([^\377])\*/$1.*/g;			# *
+    s/([^\377])\?/$1./g;			# ?
+    s/\[\\\^/[^/g;				# [^...]
+    s/\377/\\/g;
+    $_;
+}
+
+sub bind_port {
+    local($fd, $host, $port, $proto, $this) = @_;
+    &debug("binding $port to $fd\n");
+    $proto = (getprotobyname($proto))[2] || $http_defaultproto;
+    socket($fd, &AF_INET, &SOCK_STREAM, $proto) || die "socket: $!";
+    setsockopt($fd, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1));
+    $this = pack($sockaddr, &AF_INET, $port, $host);
+    bind($fd, $this) || die "bind: $!";
+    listen($fd, &SOMAXCONN) || die "listen: $!";
+    select((select($fd), $| = 1)[0]);
+    &setfd(0, fileno($fd));			# keep alive
+}
+
+sub get_request {
+    &set_timeout();
+    chop($_ = <STDIN>);				# get request
+    &clear_timeout();
+    $_;
+}
+
+# Returns array:
+#   $_     The complete path after preprocessing (basically $top/$rest)
+#   $top   The first directory level (for matching mapped entries)
+#   $rest  The remainder of path
+#   $query Any query data sent along (data after a question mark)
+sub split_request {
+    local ($_) = @_;
+    local ($top, $rest, $query) = (undef, undef, undef);
+
+    #
+    # preprocess the request
+    #
+    s:\?(.*):: && ($query = $1);		# extract query (if any)
+    s/%([\da-f]{1,2})/pack(C,hex($1))/eig;	# convert %## escapes
+    s:.*:/$&/:;					# force leading and trailing /
+    s:/+:/:g;					# fold multiple slashes
+    ($plexus{'relative'} ne 'enabled') && m:/\.+/: && &error('bad_request',
+	    "No backward directory references permitted: $_");
+    $_ = "/$plexus{'homepage'}/" if $_ eq "/";	# special case home page
+    s:^/::; s:/$::;				# cleanup
+    ($top, $rest) = split("/", $_, 2);
+
+    ($_, $top, $rest, $query);
+}
+
+# Reentrant, sets callers $action, $version, $path, $top, $rest, $query
+sub grok_request {
+    s/[ \t\r\n]*$//;				# remove trailing white-space
+    &debug("got request $_");
+    ($action, $path, $version) = split(" ", $_, 4);
+    $action =~ y/A-Z/a-z/; $version =~ y/A-Z/a-z/;
+    &error('not_implemented', "Invalid Action: $action")
+	unless (defined $method{$action});
+    &parse_headers(*in_headers) if $version;	# XXX: =~ m/$htrq_version/i;
+    ($path, $top, $rest, $query) = &split_request($path);
+}
+
+# This is the child process main routine.
+# From here out, all I/O is through STDIN/STDOUT.
+#
+# We inherit %in_headers and %out_headers from the parent so they
+# can be augmented in the config file.  $version is inherited from
+# client_connect because it calls report_error in case of failure.
+#
+# Reentrant
+sub process_request {
+    local($_, $fromfd, $peeraddr) = @_;
+    &debug("process_request($_)");
+    local($authuser);
+    local($action, $path, $top, $rest, $query);	# $version from client_connect
+
+    &grok_request;				# setup environment
+
+    # Authenticate the user (doesn't validate request).
+    # NOTE: may redirect STDIN/STDOUT and call &grok_request;
+    ($authuser = &auth()) if defined &auth;
+
+    # validates the request (i.e., can this $authuser access $path)
+    # if $authuser isn't set then the request is anonymous
+    &access($fromfd, $peeraddr, $action, $path, $version, $authuser)
+	if defined &access;
+
+    &set_timeout();
+    &log_request($peeraddr, $_);
+    &set_timeout();
+
+    eval "&$method{$action}(\$path, \$top, \$rest, \$query, \$version)";
+    die $@ if $@;
+}

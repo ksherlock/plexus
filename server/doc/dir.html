@@ -1,0 +1,32 @@
+<head>
+<title>Plexus: Directory Browser</title>
+<link rev="Subdocument" href="Overview.html">
+<link rev="Precedes" href="decode.html">
+<link rel="Precedes" href="search.html">
+</head>
+<body>
+<h1>The Directory Browser</h1>
+
+The Directory Browser is in <code>dir.pl</code> and is part of the base
+system.  It operates anytime the path specifies a directory that has no
+<var>$http_index</var> file.  The Directory Browser is enabled by setting
+<var>autoindex</var> to true in <code>local.conf</code>.  If it is not
+enabled the user will get an error message when attempting to access a
+directory.  <p>
+
+The Directory Browser will print out all the entries in the specified
+directory along with the size and last modification time.  Entries that
+are directories are marked with a trailing slash ``/''. <p>
+
+You can also use the <i>Search Keyword</i> to specify a <a href="http://www.cis.ohio-state.edu:85/info/perl.info,Regular%20Expressions">
+Perl regular expression</a> as a filter to help find files in large
+directories.  For example, a <i>Search Keyword</i> of ``gif$'' (the $ is
+needed to avoid trying to view the result as a gif file) will filter out
+all the files except those ending in ``gif''.  <p>
+
+You can hide files or directories by adding <code>hide</code> lines
+in <code>local.conf</code>. <p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

@@ -1,0 +1,25 @@
+Plexus and related utilities are in the Public Domain; you are free to
+redistribute it or even resell it without restriction.
+
+I ask (but do not require) that you leave the original credits and
+mention any changes you made.
+
+A special thanks to Marc VanHeyningen <mvanheyn@cs.indiana.edu> who
+designed and implemented the first server in perl (and on which this
+server was originally based).
+
+Thanks to:
+    Axel Belinfante <Axel.Belinfante@cs.utwente.nl>
+    Chris McRae <mcrae@ckm.ucsf.edu>
+    Guy Decoux <decoux@moulon.inra.fr>
+    Joseph Wang <joe@Athena.MIT.EDU>
+    Marc Andreessen <marca@ncsa.uiuc.edu>
+    Martijn Koster <m.koster@nexor.co.uk>
+    Nathan Torkington <Nathan.Torkington@vuw.ac.nz>
+    Rich Brandwein <rich.brandwein@att.com>
+    William C Fenner <fenner@herman.cmf.nrl.navy.mil>
+and everyone else for their comments, suggestions and contributions.
+
+See the WHOSWHO file to see what's going on.  To join the Plexus
+developers mailing list send mail to plexus-dev-request@earth.com.
+The mailing list itself is plexus-dev@earth.com.

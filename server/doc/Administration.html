@@ -1,0 +1,39 @@
+<head>
+<title>Plexus: Administration</title>
+</head>
+<body>
+<h1>Administration</h1>
+
+<h2>Log Files</h2>
+
+You will need to make sure that the log file is writable by whatever
+user (www by default) you have configured the server to run as (in
+<code>plexus.conf</code>). <p>
+
+You may want to look at the tools in <code>bin/*</code> for doing log file
+maintainence.  <code>bin/summary</code> is designed to be run as
+the same user as plexus.  It summarizes the log files using
+<code>bin/usage.byhost</code> and <code>bin/usage.byurl</code> into
+<code>usage.*</code> files and appends the <code>log</code> to
+<code>log.summary</code>.  Then it restarts the server using
+<code>bin/plexus-restart</code>.  You may archive <code>log.summary</code>
+as often as you like (I compress and save them forever). <p>
+
+<h2>$plexus_top Configuration</h2>
+
+The last thing you need to do is write the files you wish to serve.  This
+is probably the hardest part.  Look in
+http://www.bsdi.com/server/doc/web-help.html for pointers to information
+about HTML and the Web.  This file is organized by the type of user
+(user, author, service provider, and developer). <p>
+
+You will probably want to setup an <code>index.html</code> file in
+<var>$plexus_top</var> because that is what the server will map the root
+to (e.g., accessing http://your.server.edu/ will map to index.html).
+Basically, just grab someones that you like and put your information in
+it.  For a simple one you might start with something like
+http://www.bsdi.com/. <p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

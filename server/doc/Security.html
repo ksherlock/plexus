@@ -1,0 +1,22 @@
+<head>
+<title>Plexus: Security Issues</title>
+</head>
+<body>
+<h1>Security Issues</h1>
+
+<i>This file is still under development</i> <p>
+
+<ul>
+<li> Running chroot()'ed ``$http_chroot = 0;'' in plexus.conf
+<li> ``set relative disabled'' in the local.conf file.
+     To prevent access outside the exported tree this option must be
+     disabled unless you are running in a chroot()'ed environment.
+     Even then I would leave it set just in case you ever decide to
+     turn off chroot()'ed
+<li> Adding gateways.  See <a href="Upgrade.html">the
+     notice</a> about updating from earlier release to 3.X.
+</ul>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

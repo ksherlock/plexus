@@ -1,0 +1,32 @@
+<head>
+<title>Plexus: Extension Guide</title>
+<link rev="Subdocument" href="plexus.html">
+<link rev="Precedes" href="Administration.html">
+<link rel="Precedes" href="Monitoring.html">
+</head>
+<body>
+<h1>Extension Guide</h1>
+
+<i>Plexus</i> was designed with the idea that the server should be easily
+extensible by the end user without having to change the internals.  Most
+of the major pieces of functionality (e.g., logging, file locking,
+authentication, access control, access methods, and configuration files)
+are all extensible by simply loading the new functionality from the
+configuration file.  The core part of the server is just a dispatcher that
+takes the incoming requests and hands it off to the routines you specify
+in the configuration file.  The other main pieces are the support routines
+for writing your own gateways and a bunch of sample gateways (some serious
+and some just for fun). <p>
+
+The following documents are a tutorial on writing gateways for <i>Plexus</i>
+and a detailed list of the internal support routines so you can more easily
+add your own customizations and extensions.
+
+<ul>
+<li> <a href="gateways.html">Writing Gateways</a>
+<li> <a href="support.html">Internal Support Routines</a>
+</ul>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

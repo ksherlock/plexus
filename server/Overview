@@ -1,0 +1,48 @@
+Overview of Server files
+
+filename      function
+------------  ---------------------------------------------------------------
+plexus        Initialization code and main loop.  Lots of basic support
+              routines (for error handling, logging, reaping child
+              processes, debugging, etc).  &process_request vectors
+              to the appropriate method handler based on %method.
+plexus.conf   Server internal configuration file.
+local.conf    "User" level configuration file.
+
+dir.pl        Support routines for handling files and directories.
+              &retrieve is the main entry point.  It handles
+              format translation if needed.
+get.pl        Handles ``GET'' requests.  Looks up the function to call
+              in %map which is defined in local.conf
+libplex.pl    MISC support routines: printable, splitquery, hostname,
+                  safeopen, open, globpat, timeout_error, set_timeout,
+		  clear_timeout, fhbits, error, debug, caller
+log-simple.pl Simple file based logging routines
+log-syslog.pl Syslog based logging routines
+mime.pl       Support routines for parsing and generating MIME
+post.pl       Handles ``POST'' requests.  Just mails to owner right now.
+              Mostly as an example.
+site.pl       Platform specific functions.
+
+Subdirectories
+--------------
+access        Access control functions
+apps          Misc sample applications
+auth          Authentication functions
+contrib       Contributed utilities and functions
+doc           Documentation
+unsupported   Contributed utilities that haven't been integrated
+util          Utility functions:
+    cgi.pl    CGI Interface
+    decode.pl Basic ISMAP support
+    forms.pl  Routines for dealing with forms (decode, string, test, emailto)
+    grep.pl   Grep like searching on a data stream
+    inc.pl    <INC> support
+    search.pl For searching through a hierarchy of files (uses grep.pl)
+    setext.pl setext -> HTML translater
+    wais.pl   A Basic WAIS gateway
+
+Demos
+-----
+bookmark      Bookmark ISMAP demo
+walk          SpaceWalk ISMAP demo

@@ -1,0 +1,260 @@
+<head>
+<title>Plexus: Support Routines</title>
+<link rev="Subdocument" href="Extension.html">
+<link rev="Precedes" href="gateways.html">
+</head>
+<body>
+<h1>Plexus Support Routines</h1>
+
+<h2>plexus</h2>
+
+This section outlines the support routines available in <code>plexus</code>. <p>
+
+<b>&amp;process_request</b> <p>
+
+This is the entry point for th child process.  I/O is from
+STDIN/STDOUT, and it inherits <var>%in_headers</var> and
+<var>%out_headers</var> from the parent. <p>
+
+<a name="bind_port"><b>&amp;bind_port($FH, $port, $proto)</b></a> <p>
+
+<var>$FH</var> is the filehandle to connect the socket to, <var>$port</var>
+is the port number, and <var>$proto</var> is the symbolic protocol to
+use (e.g., tcp or udp).  You can add additional services into the
+plexus from the <code>local.conf</code> file by simply having your
+service bind to a port with <code>&amp;bind_port</code> and then
+registering the socket in the <var>@sockets</var> array.  For example:
+<code>&amp;bind_port(local_serv_fh, 8001, tcp);
+push(@sockets, local_serv_fh);</code>.  You can also configure your local
+<code>&amp;net_filter</code> to detect which port a connection was made
+on since it is passed the filehandle as its first argument. <p>
+
+<a name="error"><b>&amp;error($status, $msg)</b></a> <p>
+
+Where <var>$status</var> is defined in the config file by <var>%code</code>.
+<var>$msg</var> is an arbitrary message to be included in the output. <p>
+
+<b>&amp;debug($msg)</b> <p>
+
+&amp;debug writes <var>$msg</var> to <code>STDOUT</code> when the
+debug option (<code>-D</code>) is enabled. <p>
+
+<b>&amp;hostname($ipaddress)</b> <p>
+
+&amp;hostname returns either the fully qualified domain name or a
+dot quad ip address from the given <var>$ipaddress</var>. <p>
+
+<b>&amp;open($FH, $file)</b> <p>
+
+&amp;open trys to locate <var>$file</var> by searching <var>@INC</var>.
+Attaches the open file to the specified filehandle or returns
+<code>undef</code>. <p>
+
+<a name="set_timeout"><b>&amp;set_timeout</b></a> <p>
+
+Set the <code>alarm()</code>. <p>
+
+<a name="clear_timeout"><b>&amp;clear_timeout;</b></a> <p>
+
+Clear the <code>alarm()</code>. <p>
+
+<a name="printable"><b>$pstring = &amp;printable($string);</b></a> <p>
+
+Converts non-printable characters in $string to their $## form. <p>
+
+<a name="splitquery"><b>@fields = &amp;splitquery($query);</b></a> <p>
+
+Splits the query on ``+'' characters then converts %## strings to
+thier character form. <p>
+
+<a name="safeopen"><b>&amp;safeopen($fh, $file);</b></a> <p>
+
+Opens a <var>$file</var> that may contain unsafe data (pipe characters,
+8-bit data, etc).  Works just like normal <code>open</code> except you
+have to pass in the package name (e.g.,
+<code>&amp;main'safeopen("mypackage'FH", $file) ||
+&amp;main'error('bad_request', "$file: $!");</code>.  <p>
+
+<h2>get.pl</h2>
+
+This section outlines the support routines available in <code>get.pl</code>. <p>
+
+<b>&amp;do_get($request, $version)</b> <p>
+
+The <code>&amp;do_get</code> routine handles mappings between the
+URL path and the actual data.  For most documents the two will be the
+same but you can interpose translators using the <var>%map</var>
+associative array to specify alternate routines for handling the request.
+The default is <var>$map{'__default__'}</var> and as distributed
+is set to <code>&amp;retrieve</code>.  The mappings can be customized in
+the config file.
+
+
+<h2>dir.pl</h2>
+
+This section outlines the support routines available in <code>dir.pl</code>. <p>
+
+<a name="retrieve"><b>&amp;retrieve($path, $filter)</b></a> <p>
+
+Decides if the requested path is a file or directory and calls either
+<code>&amp;wrap_file</code> or <code>&amp;index_dir</code> to handle it.
+If it's a file <code>&amp;retrieve</code> first calls
+<code>&amp;deduce_content</code> to decide what kind of file it is. <p>
+
+<b>&amp;deduce_content($path)</b> <p>
+
+Recursively looks up the file extension in %encoding and %ext to determine
+the file content and encoding.  If unknown it uses the perl <code>-B</code>
+test to decide if it a binary file, if so it returns
+<var>$content_binary</var>; if not it returns <var>$content_plain</var>. <p>
+
+<b>&amp;wrap_file($path)</b> <p>
+
+Sends the specified file wrapped with an appropriate MIME header
+as to the deduced Content-type.  Also, handles doing any translations
+that are needed to get the file to an acceptable format.  This part
+will probably change again in the future when translations are
+done better.  See <code>setext.pl</code> for an example translator.  <p>
+
+To send raw data use &amp;raw_file. <p>
+
+<b>&amp;raw_file($path)</b> <p>
+
+Sends the data from the specified file out the socket.  This is used
+for internal routines that need to combine several files into one
+document.  They are responsible for sending the MIME headers. <p>
+
+<b>&amp;wrap_fd($FD, $content)</b> <p>
+
+Sends a MIME header for type $content and then sends the data from
+<var>$FD</var>. <p>
+
+<b>&amp;raw_fd($FROM, $TO)</b> <p>
+
+Reads from <var>$FROM</var> and writes to <var>$TO</var>.  No translation. <p>
+
+<b>&amp;index_dir($dir, $filter)</b> <p>
+
+Generates a listing for the files and directories in the specified path.
+If present, <var>$dir_header</var> is sent before the listing and
+<var>$dir_footer</var> is sent after the listing.  There are default
+headers and footers provided if the files are not present.  The listing
+includes the last modification time, size, and a directory/file indicator.
+
+
+
+<h2>decode.pl</h2>
+
+This outlines the support routines available in <code>decode.pl</code>. <p>
+
+<b>&amp;loadmask(*image)</b> <p>
+
+Loads the data pointed to by <var>$image{'filename'}</var> into
+<var>$image{'bits'}</var> for use by <code>&amp;pixel</code>.  The
+<var>$image{'width'}</var> and <var>$image{'height'}</var> elements must
+be set before the call.  The element <var>$image{'scanlen'}</var> is also
+returned.  <p>
+
+<b>&amp;pixel(*image, $x, $y)</b> <p>
+
+Returns the bit at <var>$x</var>,<var>$y</var> in %image.  Must have been
+already been loaded by <code>&amp;loadmask</code> or equivalent. <p>
+
+<b>&amp;region($file, $width, $height, $x, $y)</b> <p>
+
+Loads the image pointed to by <var>$file</var> and returns the pixel
+value at <var>$x</var>,<var>$y</var>.  The data from <code>$file</code>
+is cached for performance.
+
+
+<h2>grep.pl</h2>
+
+This section outlines the support routines available in <code>grep.pl</code>. <p>
+
+<b>&amp;grep($matched, $flags, $pat, *FH)</b> <p>
+
+Iterates over the data stream <var>FH</var> looking for <var>$pat</var>.
+On matches (inverted by the <code>v</code> flag) it calls the routine
+pointed to by $matched which has access to <var>$_</var>.  If
+<var>$matched</var> returns true the grep is halted at the current
+point in the input stream.  The <var>$flags</var> available are:
+
+<dl compact>
+<dt>i
+<dd>Ignore case in pattern match.
+<dt>v
+<dd>Reverse the sense of the pattern test (match lines <em>not</em> containing
+<var>$pat</var>).
+<dt>p
+<dd>Paragraph mode ($_ contains the surrounding paragraph if any line matches).
+</dl>
+
+
+<h2><a name="mime">mime.pl</a></h2>
+
+This section outlines the support routines available in <code>mime.pl</code>. <p>
+
+<a name="MIME_header"><b>&amp;MIME_header($status, $content)</b></a> <p>
+
+Outputs the MIME headers required for HTTP/1.0.  In addition to the standard
+headers (Date, Server, MIME-version, Content-type) any additional headers
+in <code>%out_headers</code> are output (Last-Modified and Content-encoding
+are the most common ones).  <p>
+
+<b>&amp;fmt_date($time)</b> <p>
+
+Returns a MIME compliant formatted date string given <code>$time</code>
+in seconds since the epoch. <p>
+
+<b>&amp;parse_headers(*headers)</b> <p>
+
+Reads from &lt;NS&gt; and processes RFC822 mail headers into an
+internal format in <code>%headers</code>.  <p>
+
+<a name="add_header"><b>&amp;add_header(*headers, $header_string)</b></a> <p>
+
+Parses <code>$header_string</code> into the internal header format
+stored in <code>%headers</code>.  This is mostly used for adding
+headers to <code>%out_headers</code> that is used by
+<code>&amp;MIME_headers</code>.  <p>
+
+<b>&amp;unparse_headers(*headers)</b> <p>
+
+Outputs RFC822 compliant headers from the internal format in
+<code>%headers</code>. <p>
+
+
+<h2>site.pl</h2>
+
+This section outlines the support routines available in <code>site.pl</code>. <p>
+
+<b>&amp;seize($FH, $operation)</b> <p>
+
+&amp;seize applies or removes an <i>advisory</i> lock on the file associated
+with the file descriptor <var>$FH</var>.  Seize can be configured to use
+either <code>flock()</code> or <code>fcntl()</code> style locking in your
+<code>local.conf</code> file.  A lock is applied by specifying a
+<var>$operation</var> parameter that is the inclusive or of
+<var>&amp;LOCK_SH</var> or <var>&amp;LOCK_EX</var> and, possibly,
+<var>&amp;LOCK_NB</var>. To unlock an existing lock operation it should be
+<var>&amp;LOCK_UN</var>.  <p>
+
+<dl compact>
+<dt><code>&amp;LOCK_SH</code>
+<dd>Shared lock (for reading)
+<dt><code>&amp;LOCK_EX</code>
+<dd>Exclusive lock (for writing)
+<dt><code>&amp;LOCK_NB</code>
+<dd>Don't block when locking
+<dt><code>&amp;LOCK_UN</code>
+<dd>Unlock (happens automatically on close)
+</dl>
+
+<b>&amp;setfd($flag, @FH)</b> <p>
+
+Sets or clears the <var>&amp;F_SETFD</var> flags on the associated
+filehandles. <p>
+
+<hr>
+<a href="http://www.bsdi.com/hyplan/sanders.html"><address>Tony Sanders</address></a>
+</body>

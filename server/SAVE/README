@@ -1,0 +1,80 @@
+$Id: README,v 2.6 1994/06/23 05:42:26 sanders Exp $
+
+This is the README file for the Plexus HTTP server.
+
+This server is provided ``as is'', and without warranty.  However, if you
+have a suggestion or comment (bug fixes preferred) please feel free to
+send them to sanders@earth.com.  If you write a server module I'll be happy
+to look at it for inclusion in the release, just send it along.
+
+Look in the ``unsupported'' directory for some useful tools that you can
+integrate without too much effort.  As time allows in the future, I will
+move some of these into the standard distribtion.
+
+To install this server there are four basic things you need to do:
+
+ o  Configure src/plexus.conf, src/local.conf and src/site.pl for
+    your site.  The default server location ($plexus_top) is
+    /usr/local/www and is defined in src/plexus but you can override
+    it on the command line (plexus -d /usr/local/www).  The config
+    file is server/plexus.conf (relative to $plexus_top) and can be
+    overridden on the command line (plexus -c server/plexus.conf).
+
+    Note that items in the site.pl file might need to be changed for
+    your site.  I highly recommend that you install the required
+    system header files using perl's h2ph.  Plexus will use built-in
+    defaults if they don't exist but the defaults might not be right
+    for your system (though they should be ok for most systems).
+
+ o  Edit Makefile.config (and the Makefile.run files in each directory).
+    You can run ``make configure'' if you want to automatically update
+    all the files with configuration data from Makefile.config.  This
+    currently only changes the #!/usr/bin/perl to $PERLBIN on the scripts
+    but it *does* process every single file and leave the original
+    version in filename.bak (so you'll have a lot of .bak files that
+    are the same as the orig).
+
+    When you are happy with the configuration run ``make install''.
+    You can also install in an alternate directory tree by using
+    (this is mostly for testing):
+	make install DESTDIR=/altroot
+
+ o  Setup the $plexus_top directory (/usr/local/www by default).
+    To start with it's handy to have an index.html file in the root
+    directory.  See doc/web-info.html under Authors and Service
+    Providers for more information about HTML and setting up servers.
+
+ o  Setup your system so it starts the server at boot time (e.g., add
+    `/usr/local/www/server/plexus 2>/dev/null &' to /etc/rc.local).
+    If you *really* want to you can also run it from inetd but it
+    will be DOG slow.  Don't run Plexus from inetd unless you really
+    know what you are doing.  It's *much* *much* better to simply
+    run it at startup time and let it deal with opening sockets itself.
+
+To export a directory from outside where the server code lives:
+    /private/server/plexus -d /public/www -s /private/server
+
+If you are going to run the finger gateway you'll need to configure
+finger.pl.  I don't recommend installing the finger gateway in general
+but it's a nice demo for how to do more complex gateways.  The siks, neuro,
+npindex, sunman and sunmanindex parts came with the code from cs.indiana.edu
+(though I've tried to keep them up with changes I've made I have not tested
+them) and will probably need work if you are going to use them.  I'm just
+passing them along for informational purposes.  The original code is at
+http://cs.indiana.edu/perl-server/intro.html.
+
+If you are going to serve files to the Internet (even if you aren't it's
+still a good idea) you should setup a generic hostname (e.g.,
+www.company.com).  That way you are free to move the server around without
+disrupting the Web.  You should also add a ``webmaster'' alias to point
+to the server administrator.  It's also a good idea to put information
+about how to contact someone on your home page (an email address is a good
+start).
+
+I have tried to make the server run without requiring perl versions of
+the system header files (like stat.ph, sockets.ph, etc) but if you have
+problems that would be the first place I would look.
+
+For more information see the files in the doc directory.
+
+--sanders@earth.com

@@ -1,0 +1,61 @@
+A Who's Who for Plexus Developers and what is going on
+
+If you are working on something let me (sanders@earth.com) know and
+I'll be happy to add you to the list.  The lastest list is online
+at http://www.bsdi.com/server/WHOSWHO.
+
+Image Decoding
+    Chris McRae <mcrae@ckm.ucsf.edu>
+    Integrated in the Plexus release
+    [I should list some of the demos available]
+
+ArchiePlex Archie->WWW Gateway
+    Martijn Koster <m.koster@nexor.co.uk>
+    Integrated in the Plexus release
+    Access: http://web.nexor.co.uk/archieplex/technical.html
+    Latest Code: http://web.nexor.co.uk/server/archieplex.pl
+
+Oracle Gateway
+    Guy Decoux <decoux@moulon.inra.fr>
+    Posted to www-talk
+    More info at
+	English: http://moulon.inra.fr/oracle/www_oraperl_eng.html
+	French: http://moulon.inra.fr/oracle/www_oraperl.html
+
+Libertas
+    Library catalogue access
+    Peter Lister <p.lister@cranfield.ac.uk>
+    Status Unknown (peter?)
+
+Info->WWW Gateway
+    Experimental -- not public at this time
+    William C Fenner <fenner@herman.cmf.nrl.navy.mil>
+
+Access control by IP address and/or Domain
+    Experimental -- not public at this time
+    William C Fenner <fenner@herman.cmf.nrl.navy.mil>
+
+WAIS
+    Chris McRae <mcrae@ckm.ucsf.edu>
+    Has an experimental version going
+
+Registrar/URN Gateway support
+    Still in the wishful stages (after the WWW Workshop I'll look at it again)
+    Rob Raisch <raisch@ora.com>
+    Tony Sanders <sanders@earth.com>
+
+AT&T information lookup
+    Of local use only, gets information about AT&T People
+    Rich Brandwein <rich.brandwein@att.com>
+
+Rough OED (Dictionary) -> WWW gateway
+    Available on request but "it still needs a little work"
+    Nathan Torkington <Nathan.Torkington@vuw.ac.nz>
+
+Purdue Phonebook
+    Chris Davis <wais@ecn.purdue.edu>
+    code: http://www.ecn.purdue.edu:8001/server/phone.pl
+    access: http://www.ecn.purdue.edu:8001/phone
+
+Windows NT port:
+    Karthikeyan Guruswamy <karthik@informix.com>

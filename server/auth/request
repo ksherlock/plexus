@@ -1,0 +1,24 @@
+GET / HTTP/1.0
+Authorization: RIPEM-1.1 entity="sanders@earth.com"
+MIME-Version: 1.0
+Content-Type: www/ripem1.1-request
+
+-----BEGIN PRIVACY-ENHANCED MESSAGE-----
+Proc-Type: 2001,ENCRYPTED
+DEK-Info: DES-CBC,3003891915F163D4
+Originator-Name: sanders@earth.com
+Originator-Key-Asymmetric:
+ MFkwCgYEVQgBAQICAgADSwAwSAJBALwiV2Pdw/nYOSfvjh64jMcXi9OtWQ+unvsT
+ 3QmX4nsfCiymS35GtymZvJ2VwW47y7IxQwDjSd4G6eS8KtcDktcCAwEAAQ==
+MIC-Info: RSA-MD5,RSA,
+ AMXQLvFlp8vkJ5RZiwCBLPXGw7G9kfPIUJKJbzoTqbxX1W23s/ATj9OwwjomN1d6
+ gs0kRoFle5HBDf7sWH69tq9laqW9iEmK
+Recipient-Name: webmaster@sample.host
+Key-Info: RSA,
+ ACbdKDOr7IGP+1MNDf90hp/VIxB6cMZop0QfZ60c+AjHnETTQlZUlmwS9X2P6Pbe
+ AxeIOX/yd099u0B0veOfU20=
+
++xjNiOx2xpthrzmLMKF3tAMhuFv6xty7xHdvWc/JLmWTBLUF4iDusCkSifPXC7Xa
+f17lFhHzvH0b83VYuCeFM0fMwA2rQiY/msbUmUIgNr9ekMCswpohEFsw4RqItSpj
+yyjGIH31Oo8=
+-----END PRIVACY-ENHANCED MESSAGE-----
